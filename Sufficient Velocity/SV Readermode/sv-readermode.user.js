@@ -2,133 +2,237 @@
 // @name         SV Readermode
 // @namespace    http://tampermonkey.net/
 // @version      2025-05-28
-// @description  Add reading mode buttons to invididual posts on SV letting. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
+// @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
 // @author       You
 // @match        https://forums.sufficientvelocity.com/threads/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=sufficientvelocity.com
-// @grant        none
+// @grant        GM_setValue
+// @grant        GM_getValue
 // ==/UserScript==
 
-// Add CSS for the fullscreen div, close button, and open button
+const availableThemes = [
+  {
+    "name": "day",
+    "fullscreen-text-color": "#2a2a2a",
+    "fullscreen-background-color": "#f4ecd8",
+    "header-background-color": "#dec588",
+    "selected-background": "rgba(0, 97, 224, 0.3)",
+  },
+  {
+    "name": "night",
+    "fullscreen-text-color": "#f4ecd8",
+    "fullscreen-background-color": "#2a2a2a",
+    "header-background-color": "#88c5de",
+    "selected-background": "rgba(97, 0, 224, 0.3)",
+  },
+  {
+    "name": "light",
+    "fullscreen-text-color": "#000000",
+    "fullscreen-background-color": "#FFFFFF",
+    "header-background-color": "#DDDDDD",
+    "selected-background": "rgba(0, 128, 0, 0.3)",
+  },
+  {
+    "name": "dark",
+    "fullscreen-text-color": "#FFFFFF",
+    "fullscreen-background-color": "#000000",
+    "header-background-color": "#333333",
+    "selected-background": "rgba(128, 0, 0, 0.3)",
+  },
+  {
+    "name": "stars",
+    "fullscreen-text-color": "#000000",
+    "fullscreen-background-color": "#E0E0E0",
+    "header-background-color": "#87CEEB",
+    "selected-background": "rgba(0, 0, 255, 0.3)",
+  },
+];
+
+// Initialize configuration options with stored values or default values
+let selectedWidth = GM_getValue("selectedWidth", 66);
+let selectedTheme = GM_getValue("selectedTheme", "night");
+let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1); // Default line spacing
+
 const css = `
-        .fullscreen-div {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--fullscreen-background-color);
-            color: var(--fullscreen-text-color);
-            display: none; /* Initially hidden */
-            justify-content: center;
-            align-items: center;
-            z-index: 9000;
+.rm-text-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--fullscreen-background-color);
+    color: var(--fullscreen-text-color);
+    display: none; /* Initially hidden */
+    justify-content: center;
+    align-items: center;
+    z-index: 9000;
 
+    align-items: flex-start;
+    overflow: scroll;
+}
 
-            overflow: scroll;
-        }
+.rm-button-container
+{
+    position: fixed;
+    top: 10px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    z-index: 9001;
+}
 
-        .close-button {
-            position: fixed;
-            top: 10px;
-            right: 30px;
-            width: 35px;
-            height: 35px;
-            font-size: 30px;
-            background-color: var(--close-button-background-color, transparent);
-            color: var(--close-button-color, black);
-            border: none;            
-            cursor: pointer;
-            z-index: 9001;
-        }
+.rm-button-container .rm-button {           
+    width: 35px;
+    height: 35px;
+    font-size: 30px;
+    background-color: transparent;
+    color: var(--fullscreen-text-color, black);
+    border: none;            
+    cursor: pointer;            
+    margin-bottom: 10px;
+}
 
-        .text-wrapper{
-            width: clamp(800px, 66%, 2500px);
-            margin: auto;
-            margin-top: 50px;
-            margin-bottom: 50px;
-        }
+.rm-text-wrapper{
+    width: clamp(800px, var(--text-column-width), 2500px);
+    
+    margin-top: 75px;
+    margin-bottom: 50px;
+    margin-right: 80px;
+}
 
-        .insertion-point{
-            background-color: var(--fullscreen-background-color);
-            color: var(--fullscreen-text-color);
+.rm-insertion-point{
+    background-color: var(--fullscreen-background-color);
+    color: var(--fullscreen-text-color);
+    line-height: var(--line-spacing);
+    margin-block: var(--paragraph-spacing);
+}
 
-        }
+.rm-insertion-point ::selection {
+    background-color: var(--selected-background);
+    color: var(--fullscreen-text-color);
+}
 
-        .insertion-point h1{
-            margin-bottom: 50px;
-        }
+.rm-insertion-point h1{
+    margin-bottom: 50px;
+}
 
-        .insertion-point .bbWrapper{
-            font-size: 1.2rem !important;
-        }
+.rm-insertion-point .bbWrapper{
+    font-size: 1.2rem !important;
+}
 
-        .insertion-point .bbCodeBlock {
-            background-color: var(--fullscreen-background-color);
-            color: var(--fullscreen-text-color);
+.rm-insertion-point .bbCodeBlock {
+    background-color: var(--fullscreen-background-color);
+    color: var(--fullscreen-text-color);
 
-            border: 1px solid;
-            border-radius: 16px;
-        }
+    border: 1px solid;
+    border-radius: 16px;
+}
 
-        .insertion-point .bbCodeBlock-shrinkLink, .insertion-point .bbCodeBlock-expandLink
-        {
-          background: unset;
-          
-        }
-        
-        .insertion-point .bbCodeBlock-shrinkLink a, .insertion-point .bbCodeBlock-expandLink a
-        {
-          background-color: var(--fullscreen-background-color);
-          color: var(--fullscreen-text-color);
-        }
+.rm-insertion-point .bbCodeBlock-shrinkLink, .rm-insertion-point .bbCodeBlock-expandLink
+{
+  background: unset;
+  
+}
 
-        .insertion-point .bbCodeBlock-title
-        {
-          background: var(--header-background-color);
-          color: var(--fullscreen-text-color);
-        }
+.rm-insertion-point .bbCodeBlock-shrinkLink a, .rm-insertion-point .bbCodeBlock-expandLink a
+{
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+}
 
-        .insertion-point .seperator
-        {
-          margin: 25px 0px 25px 0px;
-          height: 1px;
-          background: var(--fullscreen-text-color);
-        }
+.rm-insertion-point .bbCodeBlock-title
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
 
-        .open-button {
-            cursor: pointer;                        
-        }
+.rm-insertion-point .seperator
+{
+  margin: 25px 0px 25px 0px;
+  height: 1px;
+  background: var(--fullscreen-text-color);
+}
 
-        .open-button:hover {
+.rm-open-button {
+    cursor: pointer;                        
+}
 
-            text-decoration: none;
-            color: #28a1dd;
-            
-        }
-        
-        *[style*="color:transparent"] {
-            text-decoration: underline dotted !important;
-            color: unset !important;
-            opacity: 0.66;
-        }
+.rm-open-button:hover {
 
-    `;
+    text-decoration: none;
+    color: #28a1dd;            
+}
 
-// Define the HTML structure
+*[style*="color:transparent"] {
+    text-decoration: underline dotted !important;
+    color: unset !important;
+    opacity: 0.66;
+}
+
+.rm-config-panel {
+    position: fixed;
+    top: 50px;
+    right: 30px;
+    width: 200px;
+    background-color: var(--fullscreen-background-color);
+    color: var(--fullscreen-text-color);
+    padding: 10px;
+    border: 1px solid var(--header-background-color);
+    display: none;
+    z-index: 9002;
+}
+
+.rm-config-panel input, .rm-config-panel select {
+    margin-top: 10px;
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--header-background-color);
+}
+
+.rm-config-panel .close-config-button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--header-background-color);
+    background-color: var(--header-background-color);
+    color: var(--fullscreen-text-color);
+    cursor: pointer;
+}
+`;
+
 const html = `
-            <div class="fullscreen-div">
-                <button class="close-button close-reader-button"><i class="close-reader-button fa--xf far fa-times" aria-hidden="true"></i></button>
-                <!-- Add more HTML content here -->
-                <div class="text-wrapper">
-                    <div class="insertion-point">
+<div class="rm-text-viewer">
+  <div class="rm-button-container">     
+    <button class="rm-button close-button close-reader-button"><i class="close-reader-button fa--xf far fa-times" aria-hidden="true"></i></button>
+    <button class="rm-button config-button"><i class="config-button fa--xf far fa-tasks" aria-hidden="true"></i></button>
+  </div>
+  
+  <div class="rm-text-wrapper">
+      <div class="rm-insertion-point">
 
-                    </div>
-                </div>                
-            </div>
-        `;
+      </div>
+  </div>                
+  
+  <div class="rm-config-panel">
+    <h2>Configuration</h2>
+    <label for="width">Width (%):</label>
+    <input type="range" id="width" min="50" max="100" value="${selectedWidth}">
+    <label for="theme">Theme:</label>
+    <select id="theme">
+        ${availableThemes.map((theme) => `<option value="${theme.name}" ${theme.name === selectedTheme ? "selected" : ""}>${theme.name}</option>`).join("")}
+    </select>
+    <label for="line-spacing">Line Spacing:</label>
+    <input type="range" id="line-spacing" min="0.8" max="3" step="0.1" value="${selectedLineSpacing}">
+    <label for="paragraph-spacing">Paragraph Spacing:</label>
+    
+    <button class="rm-button close-config-button">Close</button>
+  </div>
+</div>
+`;
 
-function updateCSSVariables(cssProperties) {
+function applyCSSVariablesToDocument(cssProperties) {
+  "use strict";
+
   for (const key in cssProperties) {
     if (cssProperties.hasOwnProperty(key)) {
       const fullPropertyName = `--${key}`;
@@ -138,8 +242,17 @@ function updateCSSVariables(cssProperties) {
   }
 }
 
-// Function to initialize the fullscreen div and close button
-function initializeFullscreenDiv() {
+function updateTheme() {
+  applyCSSVariablesToDocument({
+    "text-column-width": `${selectedWidth}%`,
+    "line-spacing": selectedLineSpacing,
+  });
+
+  let currentTheme = availableThemes.find((theme) => theme.name === selectedTheme);
+  applyCSSVariablesToDocument(currentTheme);
+}
+
+function addReaderModeUI() {
   "use strict";
 
   document.body.innerHTML += html;
@@ -147,13 +260,62 @@ function initializeFullscreenDiv() {
   const closeButton = document.querySelector(".close-reader-button");
   if (closeButton) {
     closeButton.addEventListener("click", () => {
-      hideReader();
+      hideTextViewer();
+    });
+  }
+
+  const configButton = document.querySelector(".config-button");
+  if (configButton) {
+    configButton.addEventListener("click", () => {
+      OpenCloseConfig();
+    });
+  }
+
+  const widthInput = document.getElementById("width");
+  if (widthInput) {
+    widthInput.addEventListener("input", () => {
+      selectedWidth = parseInt(widthInput.value, 10);
+      GM_setValue("selectedWidth", selectedWidth); // Store the new width
+      updateTheme();
+    });
+  }
+
+  const themeSelect = document.getElementById("theme");
+  if (themeSelect) {
+    themeSelect.addEventListener("change", () => {
+      selectedTheme = themeSelect.value;
+      GM_setValue("selectedTheme", selectedTheme); // Store the new theme
+      updateTheme();
+    });
+  }
+
+  const lineSpacingInput = document.getElementById("line-spacing");
+  if (lineSpacingInput) {
+    lineSpacingInput.addEventListener("input", () => {
+      selectedLineSpacing = parseFloat(lineSpacingInput.value);
+      GM_setValue("selectedLineSpacing", selectedLineSpacing); // Store the new line spacing
+      updateTheme();
+    });
+  }
+
+  const closeConfigButton = document.querySelector(".close-config-button");
+  if (closeConfigButton) {
+    closeConfigButton.addEventListener("click", () => {
+      OpenCloseConfig();
     });
   }
 }
 
-// Function to add an open button to a specified element
-function addOpenButton(container) {
+function OpenCloseConfig() {
+  "use strict";
+
+  const configPanel = document.querySelector(".rm-config-panel");
+  if (configPanel) {
+    configPanel.style.display = configPanel.style.display === "block" ? "none" : "block";
+  }
+}
+
+function addPostViewButton(container) {
   "use strict";
 
   const toolBarElements = container.getElementsByClassName("message-attribution-opposite--list");
@@ -163,21 +325,21 @@ function addOpenButton(container) {
     toolBar = toolBarElements[0];
   }
 
-  if (!toolbar) {
+  if (!toolBar) {
     return;
   }
 
-  const listItemContent = '<i class="open-button fa--xf far fa-book-open" aria-hidden="true"></i>';
+  const listItemContent = '<i class="rm-open-button fa--xf far fa-book-open" aria-hidden="true"></i>';
 
   var newListItem = document.createElement("li");
   newListItem.innerHTML = listItemContent;
 
   toolBar.appendChild(newListItem);
 
-  const openButton = toolBar.querySelector(".open-button");
+  const openButton = toolBar.querySelector(".rm-open-button");
   if (openButton) {
     openButton.addEventListener("click", () => {
-      openFullscreenDiv(container);
+      viewSinglePost(container);
     });
   }
 }
@@ -197,45 +359,43 @@ function addPageViewButton(container) {
 
   if (pageViewButton) {
     pageViewButton.addEventListener("click", () => {
-      openFullscreenDivForPage();
+      viewPage();
     });
   }
 }
 
-function showReader() {
+function showTextViewer() {
   "use strict";
 
   document.body.style = "overflow: hidden !important";
-  document.querySelector(".fullscreen-div").style.display = "block";
+  document.querySelector(".rm-text-viewer").style.display = "flex";
 }
 
-function hideReader() {
+function hideTextViewer() {
   "use strict";
 
   document.body.style = "overflow: scroll !important";
-  document.querySelector(".fullscreen-div").style.display = "none";
+  document.querySelector(".rm-text-viewer").style.display = "none";
 }
 
-// New method to handle opening the fullscreen div with the container element
-function openFullscreenDiv(container) {
+function viewSinglePost(container) {
   "use strict";
 
-  const insertionPoint = document.querySelector(".insertion-point");
+  const insertionPoint = document.querySelector(".rm-insertion-point");
   if (!insertionPoint) {
     return;
   }
 
   insertionPoint.innerHTML = "";
 
-  addArticleToReader(container);
-  showReader();
+  addPostToViewer(container);
+  showTextViewer();
 }
 
-// New method to handle opening the fullscreen div with the container element
-function openFullscreenDivForPage() {
+function viewPage() {
   "use strict";
 
-  const insertionPoint = document.querySelector(".insertion-point");
+  const insertionPoint = document.querySelector(".rm-insertion-point");
   if (!insertionPoint) {
     return;
   }
@@ -246,18 +406,20 @@ function openFullscreenDivForPage() {
 
   if (articles) {
     for (let article of articles) {
-      addArticleToReader(article);
+      addPostToViewer(article);
 
       var horizontalRule = document.createElement("hr");
       horizontalRule.classList = "seperator";
       insertionPoint.appendChild(horizontalRule);
     }
   }
-  showReader();
+  showTextViewer();
 }
 
-function addArticleToReader(container) {
-  const insertionPoint = document.querySelector(".insertion-point");
+function addPostToViewer(container) {
+  "use strict";
+
+  const insertionPoint = document.querySelector(".rm-insertion-point");
   if (!insertionPoint) {
     return;
   }
@@ -308,33 +470,32 @@ function addArticleToReader(container) {
 }
 
 (function () {
+  //Insert the css into the page
   const style = document.createElement("style");
   style.type = "text/css";
   style.innerHTML = css;
   document.head.appendChild(style);
 
-  updateCSSVariables({
-    "fullscreen-text-color": "#2a2a2a",
-    "fullscreen-background-color": "#f4ecd8",
-    "header-background-color": "#dec588",
+  //Helper CSS Variables
+  applyCSSVariablesToDocument({
     "close-button-background-color": "transparent",
     "close-button-color": "black",
-    "open-button-background-color": "grey",
   });
 
-  initializeFullscreenDiv();
+  updateTheme();
 
+  //Add the text viewer to the page root
+  addReaderModeUI();
+
+  //Add buttons to show the whole page in reader view
   const readerModeButtonGroups = document.getElementsByClassName("threadmarks-reader");
   for (const group of readerModeButtonGroups) {
-    console.log(group);
     addPageViewButton(group);
   }
 
+  //Add buttons to show single posts in reader view
   const articles = document.getElementsByClassName("message--post");
-
-  if (articles) {
-    for (let article of articles) {
-      addOpenButton(article);
-    }
+  for (const article of articles) {
+    addPostViewButton(article);
   }
 })();
