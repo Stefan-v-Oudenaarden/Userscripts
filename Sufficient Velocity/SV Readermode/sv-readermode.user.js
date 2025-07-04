@@ -22,7 +22,7 @@ const availableThemes = [
     "name": "night",
     "fullscreen-text-color": "#f4ecd8",
     "fullscreen-background-color": "#2a2a2a",
-    "header-background-color": "#88c5de",
+    "header-background-color": "#5e5e5e",
     "selected-background": "rgba(97, 0, 224, 0.3)",
   },
   {
@@ -34,13 +34,13 @@ const availableThemes = [
   },
   {
     "name": "dark",
-    "fullscreen-text-color": "#FFFFFF",
-    "fullscreen-background-color": "#000000",
-    "header-background-color": "#333333",
-    "selected-background": "rgba(128, 0, 0, 0.3)",
+    "fullscreen-text-color": "rgb(230, 230, 230)",
+    "fullscreen-background-color": "rgba(10, 10, 10, 1)",
+    "header-background-color": "#053262",
+    "selected-background": "rgba(0, 97, 224, 0.3)",
   },
   {
-    "name": "stars",
+    "name": "cold",
     "fullscreen-text-color": "#000000",
     "fullscreen-background-color": "#E0E0E0",
     "header-background-color": "#87CEEB",
@@ -50,8 +50,9 @@ const availableThemes = [
 
 // Initialize configuration options with stored values or default values
 let selectedWidth = GM_getValue("selectedWidth", 66);
-let selectedTheme = GM_getValue("selectedTheme", "night");
+let selectedTheme = GM_getValue("selectedTheme", "day");
 let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1); // Default line spacing
+let selectedFontSize = GM_getValue("selectedFontSize", 1.2);
 
 const css = `
 .rm-text-viewer {
@@ -81,20 +82,20 @@ const css = `
     z-index: 9001;
 }
 
-.rm-button-container .rm-button {           
+.rm-button-container .rm-button {
     width: 35px;
     height: 35px;
     font-size: 30px;
     background-color: transparent;
     color: var(--fullscreen-text-color, black);
-    border: none;            
-    cursor: pointer;            
+    border: none;
+    cursor: pointer;
     margin-bottom: 10px;
 }
 
 .rm-text-wrapper{
     width: clamp(800px, var(--text-column-width), 2500px);
-    
+
     margin-top: 75px;
     margin-bottom: 50px;
     margin-right: 80px;
@@ -116,8 +117,13 @@ const css = `
     margin-bottom: 50px;
 }
 
+.rm-insertion-point blockquote{
+margin-bottom: 11px;
+margin-bottom: 22px;
+}
+
 .rm-insertion-point .bbWrapper{
-    font-size: 1.2rem !important;
+    font-size: var(--rm-font-size) !important;
 }
 
 .rm-insertion-point .bbCodeBlock {
@@ -131,7 +137,7 @@ const css = `
 .rm-insertion-point .bbCodeBlock-shrinkLink, .rm-insertion-point .bbCodeBlock-expandLink
 {
   background: unset;
-  
+
 }
 
 .rm-insertion-point .bbCodeBlock-shrinkLink a, .rm-insertion-point .bbCodeBlock-expandLink a
@@ -154,13 +160,13 @@ const css = `
 }
 
 .rm-open-button {
-    cursor: pointer;                        
+    cursor: pointer;
 }
 
 .rm-open-button:hover {
 
     text-decoration: none;
-    color: #28a1dd;            
+    color: #28a1dd;
 }
 
 *[style*="color:transparent"] {
@@ -187,6 +193,9 @@ const css = `
     width: 100%;
     padding: 5px;
     border: 1px solid var(--header-background-color);
+
+    background-color: var(--header-background-color);
+    color: var(--fullscreen-text-color);
 }
 
 .rm-config-panel .close-config-button {
@@ -198,33 +207,42 @@ const css = `
     color: var(--fullscreen-text-color);
     cursor: pointer;
 }
+
+.rm-config-panel select{
+  margin-bottom: 15px;
+}
 `;
 
 const html = `
 <div class="rm-text-viewer">
-  <div class="rm-button-container">     
+  <div class="rm-button-container">
     <button class="rm-button close-button close-reader-button"><i class="close-reader-button fa--xf far fa-times" aria-hidden="true"></i></button>
     <button class="rm-button config-button"><i class="config-button fa--xf far fa-tasks" aria-hidden="true"></i></button>
   </div>
-  
+
   <div class="rm-text-wrapper">
       <div class="rm-insertion-point">
 
       </div>
-  </div>                
-  
+  </div>
+
   <div class="rm-config-panel">
     <h2>Configuration</h2>
-    <label for="width">Width (%):</label>
-    <input type="range" id="width" min="50" max="100" value="${selectedWidth}">
+
     <label for="theme">Theme:</label>
     <select id="theme">
         ${availableThemes.map((theme) => `<option value="${theme.name}" ${theme.name === selectedTheme ? "selected" : ""}>${theme.name}</option>`).join("")}
     </select>
+
+    <label for="width">Width (%):</label>
+    <input type="range" id="width" min="50" max="100" value="${selectedWidth}">
+
+    <label for="font-size">Font Size (rem):</label>
+    <input type="range" id="font-size" min="0.5" max="3" step="0.1" value="${selectedFontSize}">
+
     <label for="line-spacing">Line Spacing:</label>
-    <input type="range" id="line-spacing" min="0.8" max="3" step="0.1" value="${selectedLineSpacing}">
-    <label for="paragraph-spacing">Paragraph Spacing:</label>
-    
+    <input type="range" id="line-spacing" min="0.8" max="3" step="0.05" value="${selectedLineSpacing}">
+
     <button class="rm-button close-config-button">Close</button>
   </div>
 </div>
@@ -243,12 +261,18 @@ function applyCSSVariablesToDocument(cssProperties) {
 }
 
 function updateTheme() {
+  "use strict";
+
   applyCSSVariablesToDocument({
     "text-column-width": `${selectedWidth}%`,
     "line-spacing": selectedLineSpacing,
+    "rm-font-size": `${selectedFontSize}rem`,
   });
 
   let currentTheme = availableThemes.find((theme) => theme.name === selectedTheme);
+  if (!currentTheme) {
+    currentTheme = availableThemes.find((theme) => theme.name === "day");
+  }
   applyCSSVariablesToDocument(currentTheme);
 }
 
@@ -284,7 +308,16 @@ function addReaderModeUI() {
   if (themeSelect) {
     themeSelect.addEventListener("change", () => {
       selectedTheme = themeSelect.value;
-      GM_setValue("selectedTheme", selectedTheme); // Store the new theme
+      GM_setValue("selectedTheme", selectedTheme);
+      updateTheme();
+    });
+  }
+
+  const fontSizeInput = document.getElementById("font-size");
+  if (fontSizeInput) {
+    fontSizeInput.addEventListener("input", () => {
+      selectedFontSize = parseFloat(fontSizeInput.value);
+      GM_setValue("selectedFontSize", selectedFontSize);
       updateTheme();
     });
   }
@@ -293,7 +326,7 @@ function addReaderModeUI() {
   if (lineSpacingInput) {
     lineSpacingInput.addEventListener("input", () => {
       selectedLineSpacing = parseFloat(lineSpacingInput.value);
-      GM_setValue("selectedLineSpacing", selectedLineSpacing); // Store the new line spacing
+      GM_setValue("selectedLineSpacing", selectedLineSpacing);
       updateTheme();
     });
   }
@@ -470,6 +503,8 @@ function addPostToViewer(container) {
 }
 
 (function () {
+  "use strict";
+
   //Insert the css into the page
   const style = document.createElement("style");
   style.type = "text/css";
