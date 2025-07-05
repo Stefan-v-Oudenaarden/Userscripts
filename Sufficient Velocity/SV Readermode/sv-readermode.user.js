@@ -1,15 +1,17 @@
 // ==UserScript==
 // @name         SV Readermode
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-28
+// @version      2025-07-05
 // @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
-// @author       You
+// @author       Stefan van Oudenaarden
 // @match        https://forums.sufficientvelocity.com/threads/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=sufficientvelocity.com
+// @downloadURL  https://github.com/Stefan-v-Oudenaarden/Userscripts/raw/refs/heads/main/Sufficient%20Velocity/SV%20Readermode/sv-readermode.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // ==/UserScript==
 
+// #region Options and Themes
 const availableThemes = [
   {
     "name": "day",
@@ -48,12 +50,13 @@ const availableThemes = [
   },
 ];
 
-// Initialize configuration options with stored values or default values
 let selectedWidth = GM_getValue("selectedWidth", 66);
 let selectedTheme = GM_getValue("selectedTheme", "day");
-let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1); // Default line spacing
+let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1);
 let selectedFontSize = GM_getValue("selectedFontSize", 1.2);
+// #endregion
 
+// #region CSS and HTML Artifacts
 const css = `
 .rm-text-viewer {
     position: fixed;
@@ -248,6 +251,8 @@ const html = `
 </div>
 `;
 
+// #endregion
+
 function applyCSSVariablesToDocument(cssProperties) {
   "use strict";
 
@@ -299,7 +304,7 @@ function addReaderModeUI() {
   if (widthInput) {
     widthInput.addEventListener("input", () => {
       selectedWidth = parseInt(widthInput.value, 10);
-      GM_setValue("selectedWidth", selectedWidth); // Store the new width
+      GM_setValue("selectedWidth", selectedWidth);
       updateTheme();
     });
   }
@@ -468,8 +473,6 @@ function addPostToViewer(container) {
   }
 
   text.style.fontSize = "";
-
-  //Get Threadmark Title
   const threadmarkLabels = container.getElementsByClassName("threadmarkLabel");
 
   let postTitle = "";
@@ -505,13 +508,13 @@ function addPostToViewer(container) {
 (function () {
   "use strict";
 
-  //Insert the css into the page
+  //Insert the css artifact
   const style = document.createElement("style");
   style.type = "text/css";
   style.innerHTML = css;
   document.head.appendChild(style);
 
-  //Helper CSS Variables
+  //Custom CSS Variables
   applyCSSVariablesToDocument({
     "close-button-background-color": "transparent",
     "close-button-color": "black",
@@ -519,7 +522,7 @@ function addPostToViewer(container) {
 
   updateTheme();
 
-  //Add the text viewer to the page root
+  //Insert the html artifact into the page
   addReaderModeUI();
 
   //Add buttons to show the whole page in reader view
