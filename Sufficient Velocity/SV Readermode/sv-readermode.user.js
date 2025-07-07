@@ -140,7 +140,7 @@ margin-bottom: 22px;
 .rm-insertion-point .bbCodeBlock-title {
     background-color: var(--fullscreen-background-color);
     color: var(--fullscreen-text-color);
-      
+
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
 }
@@ -535,7 +535,7 @@ function getPostIdFromArticle(article) {
     return 0;
   }
 
-  const hrefParts = shareButton.href.split("#post-");
+  const hrefParts = shareButton.href.split("post-");
 
   if (hrefParts.length < 2) {
     return 0;
