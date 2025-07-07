@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SV Readermode
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-05
+// @version      2025-07-07
 // @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
 // @author       Stefan van Oudenaarden
 // @match        https://forums.sufficientvelocity.com/threads/*
@@ -134,19 +134,16 @@ margin-bottom: 22px;
     color: var(--fullscreen-text-color);
 
     border: 1px solid;
-    border-radius: 16px;
+    border-radius: 8px;
 }
 
 .rm-insertion-point .bbCodeBlock-title {
     background-color: var(--fullscreen-background-color);
     color: var(--fullscreen-text-color);
-
-    
-    
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+      
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
-
 
 .rm-insertion-point .bbCodeInline {
     background-color: var(--header-background-color);
@@ -176,6 +173,50 @@ margin-bottom: 22px;
   margin: 25px 0px 25px 0px;
   height: 1px;
   background: var(--fullscreen-text-color);
+}
+
+
+.rm-insertion-point .sv-accordion{
+  border-radius: 8px;
+}
+
+.rm-insertion-point .sv-accordion dt
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .sv-tabs
+{
+    border-radius: 8px;
+}
+
+.rm-insertion-point .sv-tabs .sv-tabs-tabs
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .sv-encadre
+{
+  border-radius:  8px;
+}
+
+.rm-insertion-point .sv-encadre--title
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.rm-insertion-point .sv-encadre--content
+{
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .rm-open-button {
