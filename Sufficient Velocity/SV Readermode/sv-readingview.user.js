@@ -354,7 +354,11 @@ function updateTheme() {
 function addReaderModeUI() {
   "use strict";
 
-  document.body.innerHTML += html;
+  //document.body.innerHTML += html;
+  const RMDiv = document.createElement("div");
+  RMDiv.innerHTML = html;
+
+  document.querySelector("body").appendChild(RMDiv);
 
   const closeButton = document.querySelector(".close-reader-button");
   if (closeButton) {
