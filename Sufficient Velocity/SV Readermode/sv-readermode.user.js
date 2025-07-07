@@ -137,6 +137,22 @@ margin-bottom: 22px;
     border-radius: 16px;
 }
 
+.rm-insertion-point .bbCodeBlock-title {
+    background-color: var(--fullscreen-background-color);
+    color: var(--fullscreen-text-color);
+
+    
+    
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+
+.rm-insertion-point .bbCodeInline {
+    background-color: var(--header-background-color);
+    color: var(--fullscreen-text-color);
+}
+
 .rm-insertion-point .bbCodeBlock-shrinkLink, .rm-insertion-point .bbCodeBlock-expandLink
 {
   background: unset;
@@ -253,6 +269,19 @@ const html = `
 
 // #endregion
 
+// #region helper methods
+function addQueryParam(key, value) {
+  const url = new URL(window.location.href);
+  url.searchParams.set(key, value);
+  window.history.replaceState({}, "", url);
+}
+
+function removeQueryParam(key) {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(key);
+  window.history.replaceState({}, "", url);
+}
+
 function applyCSSVariablesToDocument(cssProperties) {
   "use strict";
 
@@ -264,6 +293,8 @@ function applyCSSVariablesToDocument(cssProperties) {
     }
   }
 }
+
+// #endregion
 
 function updateTheme() {
   "use strict";
@@ -414,6 +445,27 @@ function hideTextViewer() {
 
   document.body.style = "overflow: scroll !important";
   document.querySelector(".rm-text-viewer").style.display = "none";
+
+  removeQueryParam("rm-viewpage");
+  removeQueryParam("rm-viewpost");
+}
+
+function viewSpecificPost(id) {
+  const articles = document.getElementsByClassName("message--post");
+  var post = undefined;
+
+  for (const article of articles) {
+    const postId = getPostIdFromArticle(article);
+
+    if (postId !== 0) {
+      post = article;
+      break;
+    }
+  }
+
+  if (post !== undefined) {
+    viewSinglePost(post);
+  }
 }
 
 function viewSinglePost(container) {
@@ -428,6 +480,27 @@ function viewSinglePost(container) {
 
   addPostToViewer(container);
   showTextViewer();
+
+  const postId = getPostIdFromArticle(container);
+
+  if (postId !== 0) {
+    addQueryParam("rm-viewpost", postId);
+  }
+}
+
+function getPostIdFromArticle(article) {
+  const shareButton = article.querySelector(".message-attribution-gadget");
+  if (!shareButton || !shareButton.href) {
+    return 0;
+  }
+
+  const hrefParts = shareButton.href.split("#post-");
+
+  if (hrefParts.length < 2) {
+    return 0;
+  }
+
+  return hrefParts[1];
 }
 
 function viewPage() {
@@ -451,7 +524,9 @@ function viewPage() {
       insertionPoint.appendChild(horizontalRule);
     }
   }
+
   showTextViewer();
+  addQueryParam("rm-viewpage", true);
 }
 
 function addPostToViewer(container) {
@@ -535,5 +610,13 @@ function addPostToViewer(container) {
   const articles = document.getElementsByClassName("message--post");
   for (const article of articles) {
     addPostViewButton(article);
+  }
+
+  //Process query params.
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("rm-viewpage")) {
+    viewPage();
+  } else if (urlParams.has("rm-viewpost")) {
+    viewSpecificPost(urlParams["rm-viewpost"]);
   }
 })();
