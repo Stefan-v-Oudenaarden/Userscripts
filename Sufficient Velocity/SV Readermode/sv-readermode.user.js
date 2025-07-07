@@ -140,9 +140,7 @@ margin-bottom: 22px;
 .rm-insertion-point .bbCodeBlock-title {
     background-color: var(--fullscreen-background-color);
     color: var(--fullscreen-text-color);
-
     border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
 }
 
 .rm-insertion-point .bbCodeInline {
