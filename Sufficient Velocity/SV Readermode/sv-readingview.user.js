@@ -54,10 +54,13 @@ let selectedWidth = GM_getValue("selectedWidth", 66);
 let selectedTheme = GM_getValue("selectedTheme", "day");
 let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1);
 let selectedFontSize = GM_getValue("selectedFontSize", 1.2);
+let selectedFont = GM_getValue("selectedFont", "Calibri, sans-serif");
 // #endregion
 
 // #region CSS and HTML Artifacts
 const css = `
+@import url('https://fonts.cdnfonts.com/css/open-dyslexic');
+
 .rm-text-viewer {
     position: fixed;
     top: 0;
@@ -127,6 +130,7 @@ margin-bottom: 22px;
 
 .rm-insertion-point .bbWrapper{
     font-size: var(--rm-font-size) !important;
+    font-family: var(--rm-font-family) !important;
 }
 
 .rm-insertion-point .bbCodeBlock {
@@ -292,11 +296,26 @@ const html = `
         ${availableThemes.map((theme) => `<option value="${theme.name}" ${theme.name === selectedTheme ? "selected" : ""}>${theme.name}</option>`).join("")}
     </select>
 
-    <label for="width">Width (%):</label>
-    <input type="range" id="width" min="50" max="100" value="${selectedWidth}">
+    <label for="font-family">Font:</label>
+    <select id="font-family">
+        <option value="Calibri, sans-serif" ${selectedFont === "Calibri, sans-serif" ? "selected" : ""}>Calibri</option>    
+        <option value="Georgia, serif" ${selectedFont === "Georgia, serif" ? "selected" : ""}>Georgia</option>
+        <option value="Times, serif" ${selectedFont === "Times, serif" ? "selected" : ""}>Times</option>
+        <option value="Arial, sans-serif" ${selectedFont === "Arial, sans-serif" ? "selected" : ""}>Arial</option>
+        
+        <option value="Verdana, sans-serif" ${selectedFont === "Verdana, sans-serif" ? "selected" : ""}>Verdana</option>
+        <option value="'Courier New', monospace" ${selectedFont === "'Courier New', monospace" ? "selected" : ""}>Courier New</option>
+        <option value="Monaco, monospace" ${selectedFont === "Monaco, monospace" ? "selected" : ""}>Monaco</option>
+        <option value="'Trebuchet MS', sans-serif" ${selectedFont === "'Trebuchet MS', sans-serif" ? "selected" : ""}>Trebuchet MS</option>
+        <option value="Palatino, serif" ${selectedFont === "Palatino, serif" ? "selected" : ""}>Palatino</option>
+        <option value="'Open-Dyslexic', 'Comic Sans MS', sans-serif" ${selectedFont === "'Open-Dyslexic', 'Comic Sans MS', sans-serif" ? "selected" : ""}>Open Dyslexic</option>
+    </select>
 
-    <label for="font-size">Font Size (rem):</label>
+    <label for="font-size">Font Size:</label>
     <input type="range" id="font-size" min="0.5" max="3" step="0.1" value="${selectedFontSize}">
+
+    <label for="width">Width:</label>
+    <input type="range" id="width" min="50" max="100" value="${selectedWidth}">
 
     <label for="line-spacing">Line Spacing:</label>
     <input type="range" id="line-spacing" min="0.8" max="3" step="0.05" value="${selectedLineSpacing}">
@@ -342,6 +361,7 @@ function updateTheme() {
     "text-column-width": `${selectedWidth}%`,
     "line-spacing": selectedLineSpacing,
     "rm-font-size": `${selectedFontSize}rem`,
+    "rm-font-family": selectedFont,
   });
 
   let currentTheme = availableThemes.find((theme) => theme.name === selectedTheme);
@@ -397,6 +417,15 @@ function addReaderModeUI() {
     fontSizeInput.addEventListener("input", () => {
       selectedFontSize = parseFloat(fontSizeInput.value);
       GM_setValue("selectedFontSize", selectedFontSize);
+      updateTheme();
+    });
+  }
+
+  const fontFamilySelect = document.getElementById("font-family");
+  if (fontFamilySelect) {
+    fontFamilySelect.addEventListener("change", () => {
+      selectedFont = fontFamilySelect.value;
+      GM_setValue("selectedFont", selectedFont);
       updateTheme();
     });
   }
