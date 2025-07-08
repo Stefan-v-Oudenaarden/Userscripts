@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SV Reading View
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-07
+// @version      2025-07-08
 // @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
 // @author       Stefan van Oudenaarden
 // @match        https://forums.sufficientvelocity.com/threads/*
