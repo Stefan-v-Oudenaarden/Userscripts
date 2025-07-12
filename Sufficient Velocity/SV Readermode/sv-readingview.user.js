@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SV Reading View
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-08
+// @version      2025-07-12
 // @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
 // @author       Stefan van Oudenaarden
 // @match        https://forums.sufficientvelocity.com/threads/*
@@ -141,6 +141,13 @@ margin-bottom: 22px;
     border-radius: 8px;
 }
 
+.rm-insertion-point .tally-block
+{
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
 .rm-insertion-point .bbCodeBlock-title {
     background-color: var(--fullscreen-background-color);
     color: var(--fullscreen-text-color);
@@ -177,6 +184,17 @@ margin-bottom: 22px;
   background: var(--fullscreen-text-color);
 }
 
+.rm-insertion-point .tabs--standalone
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .tabs-pane dt
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
 
 .rm-insertion-point .sv-accordion{
   border-radius: 8px;
@@ -217,6 +235,22 @@ margin-bottom: 22px;
   background-color: var(--fullscreen-background-color);
   color: var(--fullscreen-text-color);
 
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.rm-insertion-point .block-header
+{
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.rm-insertion-point .blockMessage
+{
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
@@ -523,14 +557,16 @@ function hideTextViewer() {
 }
 
 function viewSpecificPost(id) {
+  console.log(id);
   const articles = document.getElementsByClassName("message--post");
   var post = undefined;
 
   for (const article of articles) {
     const postId = getPostIdFromArticle(article);
 
-    if (postId !== 0) {
+    if (postId === id) {
       post = article;
+      console.log(article);
       break;
     }
   }
@@ -689,6 +725,6 @@ function addPostToViewer(container) {
   if (urlParams.has("rm-viewpage")) {
     viewPage();
   } else if (urlParams.has("rm-viewpost")) {
-    viewSpecificPost(urlParams["rm-viewpost"]);
+    viewSpecificPost(urlParams.get("rm-viewpost"));
   }
 })();
