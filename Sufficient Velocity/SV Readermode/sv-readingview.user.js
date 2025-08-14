@@ -14,35 +14,35 @@
 // #region Options and Themes
 const availableThemes = [
   {
-    "name": "day",
+    "name": "Day",
     "fullscreen-text-color": "#2a2a2a",
     "fullscreen-background-color": "#f4ecd8",
     "header-background-color": "#dec588",
     "selected-background": "rgba(0, 97, 224, 0.3)",
   },
   {
-    "name": "night",
+    "name": "Night",
     "fullscreen-text-color": "#f4ecd8",
     "fullscreen-background-color": "#2a2a2a",
     "header-background-color": "#5e5e5e",
     "selected-background": "rgba(97, 0, 224, 0.3)",
   },
   {
-    "name": "light",
+    "name": "Light",
     "fullscreen-text-color": "#000000",
     "fullscreen-background-color": "#FFFFFF",
     "header-background-color": "#DDDDDD",
     "selected-background": "rgba(0, 128, 0, 0.3)",
   },
   {
-    "name": "dark",
+    "name": "Dark",
     "fullscreen-text-color": "rgb(230, 230, 230)",
     "fullscreen-background-color": "rgba(10, 10, 10, 1)",
     "header-background-color": "#053262",
     "selected-background": "rgba(0, 97, 224, 0.3)",
   },
   {
-    "name": "cold",
+    "name": "Cold",
     "fullscreen-text-color": "#000000",
     "fullscreen-background-color": "#E0E0E0",
     "header-background-color": "#87CEEB",
@@ -51,7 +51,7 @@ const availableThemes = [
 ];
 
 let selectedWidth = GM_getValue("selectedWidth", 66);
-let selectedTheme = GM_getValue("selectedTheme", "day");
+let selectedTheme = GM_getValue("selectedTheme", "Day");
 let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1);
 let selectedFontSize = GM_getValue("selectedFontSize", 1.2);
 let selectedFont = GM_getValue("selectedFont", "Calibri, sans-serif");
@@ -294,16 +294,6 @@ margin-bottom: 22px;
     color: var(--fullscreen-text-color);
 }
 
-.rm-config-panel .close-config-button {
-    margin-top: 10px;
-    width: 100%;
-    padding: 5px;
-    border: 1px solid var(--header-background-color);
-    background-color: var(--header-background-color);
-    color: var(--fullscreen-text-color);
-    cursor: pointer;
-}
-
 .rm-config-panel select{
   margin-bottom: 15px;
 }
@@ -353,8 +343,6 @@ const html = `
 
     <label for="line-spacing">Line Spacing:</label>
     <input type="range" id="line-spacing" min="0.8" max="3" step="0.05" value="${selectedLineSpacing}">
-
-    <button class="rm-button close-config-button">Close</button>
   </div>
 </div>
 `;
@@ -400,7 +388,7 @@ function updateTheme() {
 
   let currentTheme = availableThemes.find((theme) => theme.name === selectedTheme);
   if (!currentTheme) {
-    currentTheme = availableThemes.find((theme) => theme.name === "day");
+    currentTheme = availableThemes.find((theme) => theme.name === "Day");
   }
   applyCSSVariablesToDocument(currentTheme);
 }
@@ -417,7 +405,12 @@ function addReaderModeUI() {
   const closeButton = document.querySelector(".close-reader-button");
   if (closeButton) {
     closeButton.addEventListener("click", () => {
-      hideTextViewer();
+      const configPanel = document.querySelector(".rm-config-panel");
+      if (configPanel && configPanel.style.display === "block") {
+        OpenCloseConfig();
+      } else {
+        hideTextViewer();
+      }
     });
   }
 
@@ -472,21 +465,24 @@ function addReaderModeUI() {
       updateTheme();
     });
   }
-
-  const closeConfigButton = document.querySelector(".close-config-button");
-  if (closeConfigButton) {
-    closeConfigButton.addEventListener("click", () => {
-      OpenCloseConfig();
-    });
-  }
 }
 
 function OpenCloseConfig() {
   "use strict";
 
   const configPanel = document.querySelector(".rm-config-panel");
+  const configButton = document.querySelector(".config-button");
+  
   if (configPanel) {
-    configPanel.style.display = configPanel.style.display === "block" ? "none" : "block";
+    if (configPanel.style.display === "block") {
+      // Close config panel
+      configPanel.style.display = "none";
+      if (configButton) configButton.style.display = "block";
+    } else {
+      // Open config panel
+      configPanel.style.display = "block";
+      if (configButton) configButton.style.display = "none";
+    }
   }
 }
 
