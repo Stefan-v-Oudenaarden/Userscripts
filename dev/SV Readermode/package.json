@@ -1,0 +1,23 @@
+{
+  "name": "sv-reading-view",
+  "version": "2025.07.12",
+  "description": "Build system for SV Reading View UserScript",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js",
+    "watch": "node -e \"const fs = require('fs'); const { exec } = require('child_process'); console.log('Watching src/ for changes...'); fs.watch('src', { recursive: true }, () => { console.log('Change detected, rebuilding...'); exec('npm run build', (err, stdout) => { if (err) console.error(err); else console.log(stdout); }); });\""
+  },
+  "keywords": [
+    "userscript",
+    "sufficientvelocity",
+    "reading",
+    "forums"
+  ],
+  "author": "Stefan van Oudenaarden",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

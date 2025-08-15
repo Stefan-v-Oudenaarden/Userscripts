@@ -1,0 +1,238 @@
+@import url("https://fonts.cdnfonts.com/css/open-dyslexic");
+
+.rm-text-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  display: none; /* Initially hidden */
+  justify-content: center;
+  align-items: center;
+  z-index: 9000;
+
+  align-items: flex-start;
+  overflow: scroll;
+}
+
+.rm-button-container {
+  position: fixed;
+  top: 10px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  z-index: 9001;
+}
+
+.rm-button-container .rm-button {
+  width: 35px;
+  height: 35px;
+  font-size: 30px;
+  background-color: transparent;
+  color: var(--fullscreen-text-color, black);
+  border: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.rm-text-wrapper {
+  width: clamp(800px, var(--text-column-width), 2500px);
+
+  margin-top: 75px;
+  margin-bottom: 50px;
+  margin-right: 80px;
+}
+
+.rm-insertion-point {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  line-height: var(--line-spacing);
+  margin-block: var(--paragraph-spacing);
+}
+
+.rm-insertion-point ::selection {
+  background-color: var(--selected-background);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point h1 {
+  margin-bottom: 50px;
+}
+
+.rm-insertion-point blockquote {
+  margin-bottom: 11px;
+  margin-bottom: 22px;
+}
+
+.rm-insertion-point .bbWrapper {
+  font-size: var(--rm-font-size) !important;
+  font-family: var(--rm-font-family) !important;
+}
+
+.rm-insertion-point .bbCodeSpoiler-button {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbCodeSpoiler-button:hover {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.tooltip .tooltip-content {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbCodeBlock {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+
+  border: 1px solid;
+  border-radius: 8px;
+}
+
+.rm-insertion-point .tally-block {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.rm-insertion-point .bbCodeBlock-title {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
+}
+
+.rm-insertion-point .bbCodeInline {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbCodeBlock-shrinkLink,
+.rm-insertion-point .bbCodeBlock-expandLink {
+  background: unset;
+}
+
+.rm-insertion-point .bbCodeBlock-shrinkLink a,
+.rm-insertion-point .bbCodeBlock-expandLink a {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbCodeBlock-title {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .seperator {
+  margin: 25px 0px 25px 0px;
+  height: 1px;
+  background: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .tabs--standalone {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .tabs-pane dt {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .sv-accordion {
+  border-radius: 8px;
+}
+
+.rm-insertion-point .sv-accordion dt {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .sv-tabs {
+  border-radius: 8px;
+}
+
+.rm-insertion-point .sv-tabs .sv-tabs-tabs {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .sv-encadre {
+  border-radius: 8px;
+}
+
+.rm-insertion-point .sv-encadre--title {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.rm-insertion-point .sv-encadre--content {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.rm-insertion-point .block-header {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.rm-insertion-point .blockMessage {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.rm-open-button {
+  cursor: pointer;
+}
+
+.rm-open-button:hover {
+  text-decoration: none;
+  color: #28a1dd;
+}
+
+*[style*="color:transparent"] {
+  text-decoration: underline dotted !important;
+  color: unset !important;
+  opacity: 0.66;
+}
+
+.rm-config-panel {
+  position: fixed;
+  top: 50px;
+  right: 30px;
+  width: 200px;
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  padding: 10px;
+  border: 1px solid var(--header-background-color);
+  display: none;
+  z-index: 9002;
+}
+
+.rm-config-panel input,
+.rm-config-panel select {
+  margin-top: 10px;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--header-background-color);
+
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-config-panel select {
+  margin-bottom: 15px;
+}

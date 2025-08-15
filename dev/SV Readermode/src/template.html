@@ -1,0 +1,35 @@
+<div class="rm-text-viewer">
+  <div class="rm-button-container">
+    <button class="rm-button close-button close-reader-button"><i class="close-reader-button fa--xf far fa-times" aria-hidden="true"></i></button>
+    <button class="rm-button config-button"><i class="config-button fa--xf far fa-tasks" aria-hidden="true"></i></button>
+  </div>
+
+  <div class="rm-text-wrapper">
+      <div class="rm-insertion-point">
+
+      </div>
+  </div>
+
+  <div class="rm-config-panel">
+    <h2>Configuration</h2>
+
+    <label for="theme">Theme:</label>
+    <select id="theme">
+        {{THEME_OPTIONS}}
+    </select>
+
+    <label for="font-family">Font:</label>
+    <select id="font-family">
+        {{FONT_OPTIONS}}
+    </select>
+
+    <label for="font-size">Font Size:</label>
+    <input type="range" id="font-size" min="0.5" max="3" step="0.1" value="{{FONT_SIZE}}">
+
+    <label for="width">Width:</label>
+    <input type="range" id="width" min="50" max="100" value="{{WIDTH}}">
+
+    <label for="line-spacing">Line Spacing:</label>
+    <input type="range" id="line-spacing" min="0.8" max="3" step="0.05" value="{{LINE_SPACING}}">
+  </div>
+</div>
