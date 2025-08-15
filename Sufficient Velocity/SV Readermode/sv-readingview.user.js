@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name         SV Reading View
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-12
+// @version      2025-08-15
 // @description  Add reading mode buttons to individual posts on SV forums. This reader mode uses a solarized light colour scheme and respects SV colours and glows. It reveals invisitext and makes clear it was invisible with a slight change in colour and a dotted underline.
 // @author       Stefan van Oudenaarden
 // @match        https://forums.sufficientvelocity.com/threads/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=sufficientvelocity.com
-// @downloadURL
+// @downloadURL  https://raw.githubusercontent.com/Stefan-v-Oudenaarden/Userscripts/refs/heads/main/Sufficient%20Velocity/SV%20Readermode/sv-readingview.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // ==/UserScript==
+
 
 // #region Options and Themes
 const availableThemes = [
@@ -50,6 +51,19 @@ const availableThemes = [
   },
 ];
 
+const availableFonts = [
+  { name: "Calibri", value: "Calibri, sans-serif" },
+  { name: "Georgia", value: "Georgia, serif" },
+  { name: "Times", value: "Times, serif" },
+  { name: "Arial", value: "Arial, sans-serif" },
+  { name: "Verdana", value: "Verdana, sans-serif" },
+  { name: "Courier New", value: "'Courier New', monospace" },
+  { name: "Monaco", value: "Monaco, monospace" },
+  { name: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { name: "Palatino", value: "Palatino, serif" },
+  { name: "Open Dyslexic", value: "'Open-Dyslexic', 'Comic Sans MS', sans-serif" },
+];
+
 let selectedWidth = GM_getValue("selectedWidth", 66);
 let selectedTheme = GM_getValue("selectedTheme", "Day");
 let selectedLineSpacing = GM_getValue("selectedLineSpacing", 1);
@@ -58,180 +72,181 @@ let selectedFont = GM_getValue("selectedFont", "Calibri, sans-serif");
 // #endregion
 
 // #region CSS and HTML Artifacts
-const css = `
-@import url('https://fonts.cdnfonts.com/css/open-dyslexic');
+const css = `@import url("https://fonts.cdnfonts.com/css/open-dyslexic");
 
 .rm-text-viewer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--fullscreen-background-color);
-    color: var(--fullscreen-text-color);
-    display: none; /* Initially hidden */
-    justify-content: center;
-    align-items: center;
-    z-index: 9000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  display: none; /* Initially hidden */
+  justify-content: center;
+  align-items: center;
+  z-index: 9000;
 
-    align-items: flex-start;
-    overflow: scroll;
+  align-items: flex-start;
+  overflow: scroll;
 }
 
-.rm-button-container
-{
-    position: fixed;
-    top: 10px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    z-index: 9001;
+.rm-button-container {
+  position: fixed;
+  top: 10px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  z-index: 9001;
 }
 
 .rm-button-container .rm-button {
-    width: 35px;
-    height: 35px;
-    font-size: 30px;
-    background-color: transparent;
-    color: var(--fullscreen-text-color, black);
-    border: none;
-    cursor: pointer;
-    margin-bottom: 10px;
+  width: 35px;
+  height: 35px;
+  font-size: 30px;
+  background-color: transparent;
+  color: var(--fullscreen-text-color, black);
+  border: none;
+  cursor: pointer;
+  margin-bottom: 10px;
 }
 
-.rm-text-wrapper{
-    width: clamp(800px, var(--text-column-width), 2500px);
+.rm-text-wrapper {
+  width: clamp(800px, var(--text-column-width), 2500px);
 
-    margin-top: 75px;
-    margin-bottom: 50px;
-    margin-right: 80px;
+  margin-top: 75px;
+  margin-bottom: 50px;
+  margin-right: 80px;
 }
 
-.rm-insertion-point{
-    background-color: var(--fullscreen-background-color);
-    color: var(--fullscreen-text-color);
-    line-height: var(--line-spacing);
-    margin-block: var(--paragraph-spacing);
+.rm-insertion-point {
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  line-height: var(--line-spacing);
+  margin-block: var(--paragraph-spacing);
 }
 
 .rm-insertion-point ::selection {
-    background-color: var(--selected-background);
-    color: var(--fullscreen-text-color);
+  background-color: var(--selected-background);
+  color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point h1{
-    margin-bottom: 50px;
+.rm-insertion-point h1 {
+  margin-bottom: 50px;
 }
 
-.rm-insertion-point blockquote{
-margin-bottom: 11px;
-margin-bottom: 22px;
+.rm-insertion-point blockquote {
+  margin-bottom: 11px;
+  margin-bottom: 22px;
 }
 
-.rm-insertion-point .bbWrapper{
-    font-size: var(--rm-font-size) !important;
-    font-family: var(--rm-font-family) !important;
+.rm-insertion-point .bbWrapper {
+  font-size: var(--rm-font-size) !important;
+  font-family: var(--rm-font-family) !important;
+}
+
+.rm-insertion-point .bbCodeSpoiler-button {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbCodeSpoiler-button:hover {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.tooltip .tooltip-content {
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
 }
 
 .rm-insertion-point .bbCodeBlock {
-    background-color: var(--fullscreen-background-color);
-    color: var(--fullscreen-text-color);
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
 
-    border: 1px solid;
-    border-radius: 8px;
+  border: 1px solid;
+  border-radius: 8px;
 }
 
-.rm-insertion-point .tally-block
-{
+.rm-insertion-point .tally-block {
   margin-top: 8px;
   margin-bottom: 8px;
   border-radius: 8px;
 }
 
 .rm-insertion-point .bbCodeBlock-title {
-    background-color: var(--fullscreen-background-color);
-    color: var(--fullscreen-text-color);
-    border-top-left-radius: 8px;
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  border-top-left-radius: 8px;
 }
 
 .rm-insertion-point .bbCodeInline {
-    background-color: var(--header-background-color);
-    color: var(--fullscreen-text-color);
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .bbCodeBlock-shrinkLink, .rm-insertion-point .bbCodeBlock-expandLink
-{
+.rm-insertion-point .bbCodeBlock-shrinkLink,
+.rm-insertion-point .bbCodeBlock-expandLink {
   background: unset;
-
 }
 
-.rm-insertion-point .bbCodeBlock-shrinkLink a, .rm-insertion-point .bbCodeBlock-expandLink a
-{
+.rm-insertion-point .bbCodeBlock-shrinkLink a,
+.rm-insertion-point .bbCodeBlock-expandLink a {
   background-color: var(--fullscreen-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .bbCodeBlock-title
-{
+.rm-insertion-point .bbCodeBlock-title {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .seperator
-{
+.rm-insertion-point .seperator {
   margin: 25px 0px 25px 0px;
   height: 1px;
   background: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .tabs--standalone
-{
+.rm-insertion-point .tabs--standalone {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .tabs-pane dt
-{
+.rm-insertion-point .tabs-pane dt {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .sv-accordion{
+.rm-insertion-point .sv-accordion {
   border-radius: 8px;
 }
 
-.rm-insertion-point .sv-accordion dt
-{
+.rm-insertion-point .sv-accordion dt {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .sv-tabs
-{
-    border-radius: 8px;
+.rm-insertion-point .sv-tabs {
+  border-radius: 8px;
 }
 
-.rm-insertion-point .sv-tabs .sv-tabs-tabs
-{
+.rm-insertion-point .sv-tabs .sv-tabs-tabs {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
 }
 
-.rm-insertion-point .sv-encadre
-{
-  border-radius:  8px;
+.rm-insertion-point .sv-encadre {
+  border-radius: 8px;
 }
 
-.rm-insertion-point .sv-encadre--title
-{
+.rm-insertion-point .sv-encadre--title {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
 
-.rm-insertion-point .sv-encadre--content
-{
+.rm-insertion-point .sv-encadre--content {
   background-color: var(--fullscreen-background-color);
   color: var(--fullscreen-text-color);
 
@@ -239,16 +254,14 @@ margin-bottom: 22px;
   border-bottom-right-radius: 8px;
 }
 
-.rm-insertion-point .block-header
-{
+.rm-insertion-point .block-header {
   background: var(--header-background-color);
   color: var(--fullscreen-text-color);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
 
-.rm-insertion-point .blockMessage
-{
+.rm-insertion-point .blockMessage {
   background-color: var(--fullscreen-background-color);
   color: var(--fullscreen-text-color);
   border-bottom-left-radius: 8px;
@@ -256,51 +269,50 @@ margin-bottom: 22px;
 }
 
 .rm-open-button {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .rm-open-button:hover {
-
-    text-decoration: none;
-    color: #28a1dd;
+  text-decoration: none;
+  color: #28a1dd;
 }
 
 *[style*="color:transparent"] {
-    text-decoration: underline dotted !important;
-    color: unset !important;
-    opacity: 0.66;
+  text-decoration: underline dotted !important;
+  color: unset !important;
+  opacity: 0.66;
 }
 
 .rm-config-panel {
-    position: fixed;
-    top: 50px;
-    right: 30px;
-    width: 200px;
-    background-color: var(--fullscreen-background-color);
-    color: var(--fullscreen-text-color);
-    padding: 10px;
-    border: 1px solid var(--header-background-color);
-    display: none;
-    z-index: 9002;
+  position: fixed;
+  top: 50px;
+  right: 30px;
+  width: 200px;
+  background-color: var(--fullscreen-background-color);
+  color: var(--fullscreen-text-color);
+  padding: 10px;
+  border: 1px solid var(--header-background-color);
+  display: none;
+  z-index: 9002;
 }
 
-.rm-config-panel input, .rm-config-panel select {
-    margin-top: 10px;
-    width: 100%;
-    padding: 5px;
-    border: 1px solid var(--header-background-color);
+.rm-config-panel input,
+.rm-config-panel select {
+  margin-top: 10px;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--header-background-color);
 
-    background-color: var(--header-background-color);
-    color: var(--fullscreen-text-color);
+  background-color: var(--header-background-color);
+  color: var(--fullscreen-text-color);
 }
 
-.rm-config-panel select{
+.rm-config-panel select {
   margin-bottom: 15px;
 }
 `;
 
-const html = `
-<div class="rm-text-viewer">
+const html = `<div class="rm-text-viewer">
   <div class="rm-button-container">
     <button class="rm-button close-button close-reader-button"><i class="close-reader-button fa--xf far fa-times" aria-hidden="true"></i></button>
     <button class="rm-button config-button"><i class="config-button fa--xf far fa-tasks" aria-hidden="true"></i></button>
@@ -317,22 +329,12 @@ const html = `
 
     <label for="theme">Theme:</label>
     <select id="theme">
-        ${availableThemes.map((theme) => `<option value="${theme.name}" ${theme.name === selectedTheme ? "selected" : ""}>${theme.name}</option>`).join("")}
+        ${generateThemeOptions()}
     </select>
 
     <label for="font-family">Font:</label>
     <select id="font-family">
-        <option value="Calibri, sans-serif" ${selectedFont === "Calibri, sans-serif" ? "selected" : ""}>Calibri</option>    
-        <option value="Georgia, serif" ${selectedFont === "Georgia, serif" ? "selected" : ""}>Georgia</option>
-        <option value="Times, serif" ${selectedFont === "Times, serif" ? "selected" : ""}>Times</option>
-        <option value="Arial, sans-serif" ${selectedFont === "Arial, sans-serif" ? "selected" : ""}>Arial</option>
-        
-        <option value="Verdana, sans-serif" ${selectedFont === "Verdana, sans-serif" ? "selected" : ""}>Verdana</option>
-        <option value="'Courier New', monospace" ${selectedFont === "'Courier New', monospace" ? "selected" : ""}>Courier New</option>
-        <option value="Monaco, monospace" ${selectedFont === "Monaco, monospace" ? "selected" : ""}>Monaco</option>
-        <option value="'Trebuchet MS', sans-serif" ${selectedFont === "'Trebuchet MS', sans-serif" ? "selected" : ""}>Trebuchet MS</option>
-        <option value="Palatino, serif" ${selectedFont === "Palatino, serif" ? "selected" : ""}>Palatino</option>
-        <option value="'Open-Dyslexic', 'Comic Sans MS', sans-serif" ${selectedFont === "'Open-Dyslexic', 'Comic Sans MS', sans-serif" ? "selected" : ""}>Open Dyslexic</option>
+        ${generateFontOptions()}
     </select>
 
     <label for="font-size">Font Size:</label>
@@ -344,8 +346,7 @@ const html = `
     <label for="line-spacing">Line Spacing:</label>
     <input type="range" id="line-spacing" min="0.8" max="3" step="0.05" value="${selectedLineSpacing}">
   </div>
-</div>
-`;
+</div>`;
 
 // #endregion
 
@@ -374,6 +375,20 @@ function applyCSSVariablesToDocument(cssProperties) {
   }
 }
 
+function getPostIdFromArticle(article) {
+  const shareButton = article.querySelector(".message-attribution-gadget");
+  if (!shareButton || !shareButton.href) {
+    return 0;
+  }
+
+  const hrefParts = shareButton.href.split("post-");
+
+  if (hrefParts.length < 2) {
+    return 0;
+  }
+
+  return hrefParts[1];
+}
 // #endregion
 
 function updateTheme() {
@@ -393,10 +408,21 @@ function updateTheme() {
   applyCSSVariablesToDocument(currentTheme);
 }
 
+function generateThemeOptions() {
+  return availableThemes.map((theme) => 
+    `<option value="${theme.name}" ${theme.name === selectedTheme ? "selected" : ""}>${theme.name}</option>`
+  ).join("");
+}
+
+function generateFontOptions() {
+  return availableFonts.map((font) => 
+    `<option value="${font.value}" ${font.value === selectedFont ? "selected" : ""}>${font.name}</option>`
+  ).join("");
+}
+
 function addReaderModeUI() {
   "use strict";
 
-  //document.body.innerHTML += html;
   const RMDiv = document.createElement("div");
   RMDiv.innerHTML = html;
 
@@ -590,21 +616,6 @@ function viewSinglePost(container) {
   if (postId !== 0) {
     addQueryParam("rm-viewpost", postId);
   }
-}
-
-function getPostIdFromArticle(article) {
-  const shareButton = article.querySelector(".message-attribution-gadget");
-  if (!shareButton || !shareButton.href) {
-    return 0;
-  }
-
-  const hrefParts = shareButton.href.split("post-");
-
-  if (hrefParts.length < 2) {
-    return 0;
-  }
-
-  return hrefParts[1];
 }
 
 function viewPage() {
