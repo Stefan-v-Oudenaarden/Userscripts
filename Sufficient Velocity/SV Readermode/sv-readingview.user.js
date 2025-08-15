@@ -155,11 +155,6 @@ const css = `@import url("https://fonts.cdnfonts.com/css/open-dyslexic");
   color: var(--fullscreen-text-color);
 }
 
-.tooltip .tooltip-content {
-  background-color: var(--header-background-color);
-  color: var(--fullscreen-text-color);
-}
-
 .rm-insertion-point .bbCodeBlock {
   background-color: var(--fullscreen-background-color);
   color: var(--fullscreen-text-color);
