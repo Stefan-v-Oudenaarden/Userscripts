@@ -71,6 +71,16 @@
   font-family: var(--rm-font-family) !important;
 }
 
+.rm-insertion-point .bbTable {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
+.rm-insertion-point .bbTable td {
+  background: var(--header-background-color);
+  color: var(--fullscreen-text-color);
+}
+
 .rm-insertion-point .bbCodeSpoiler-button {
   background-color: var(--header-background-color);
   color: var(--fullscreen-text-color);
